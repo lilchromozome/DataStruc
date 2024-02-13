@@ -1,0 +1,18 @@
+@Test
+  @DisplayName("length() returns correct length after value is to default")
+  void testPutNull() {
+    System.out.println("test length after put");
+    indexedList.put(1, 6);
+    indexedList.put(5, 6);
+    indexedList.put(2, 6);
+    indexedList.put(3, null);
+    for (int i = 0; i < LENGTH; i++) {
+      if (i == 3) {
+        assertEquals(null, indexedList.get(i));
+      } else if (i == 1 || i == 5 || i == 2) {
+        assertEquals(6, indexedList.get(i));
+      } else {
+        assertEquals(7, indexedList.get(i));
+      }
+    }
+  }

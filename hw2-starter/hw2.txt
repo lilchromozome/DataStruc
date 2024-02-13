@@ -1,0 +1,165 @@
+package hw2;
+
+import exceptions.IndexException;
+import exceptions.LengthException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+
+/**
+ * An implementation of an IndexedList designed for cases where
+ * only a few positions have distinct values from the initial value.
+ *
+ * @param <T> Element type.
+ */
+public class SparseIndexedList<T> implements IndexedList<T> {
+  private final int length;
+  private T defaultval;
+  private Node<T> head;
+
+  private static class Node<T> {
+    T data;
+    Node<T> next;
+    int index;
+  }
+
+  /**
+   * Constructs a new SparseIndexedList of length size
+   * with default value of defaultValue.
+   *
+   * @param size         Length of list, expected: size > 0.
+   * @param defaultValue Default value to store in each slot.
+   * @throws LengthException if size <= 0.
+   */
+
+
+  public SparseIndexedList(int size, T defaultValue) throws LengthException {
+    if (size <= 0) {
+      throw new LengthException();
+    }
+    length = size;
+    head = null;
+    defaultval = defaultValue;
+  }
+
+  @Override
+  public int length() {
+    return length;
+  }
+
+  private boolean isValid(int index) {
+    return index >= 0 && index < length();
+  }
+
+  /**
+   * Removes specified index of sparseindexedlist.
+   *
+   * @param index    index to be added to node, expected: any index within bounds.
+   * @param value    value to be added to node, expected: anything.
+   * @param nextNode nextNode that should be pointed to, expected: anything.
+   */
+  private Node<T> makeNode(int index, T value, Node<T> nextNode) {
+    Node<T> newNode = new Node<T>();
+    newNode.data = value;
+    newNode.index = index;
+    newNode.next = nextNode;
+    return newNode;
+  }
+
+  private Node<T> searchPrev(int index) throws IndexException {
+    if (!isValid(index)) {
+      throw new IndexException();
+    }
+    if (head == null) {
+      return null;
+    }
+    Node<T> node = head;
+    while (node != null && node.index < (index - 1)) {
+      if (node.next != null && index > node.next.index) {
+        node = node.next;
+      } else {
+        break;
+      }
+    }
+    return node;
+  }
+
+  private Node<T> find(int index) throws IndexException {
+    Node<T> node = searchPrev(index);
+    if (node != null && index != head.index) {
+      node = node.next;
+    }
+    if (node != null && node.index == index) {
+      return node;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Removes specified index of sparseindexedlist.
+   *
+   * @param index index to be removed, expected: to be within bounds.
+   * @throws IndexException if index is not withound bounds..
+   */
+  public void remove(int index) throws IndexException {
+    if (!isValid(index)) {
+      throw new IndexException();
+    }
+    Node<T> prevNode = searchPrev(index);
+    if (prevNode.index == index) {
+      if (prevNode.next != null) {
+        head = head.next;
+      } else {
+        head = null;
+      }
+    } else {
+      prevNode.next = prevNode.next.next;
+    }
+
+  }
+
+  @Override
+  public void put(int index, T value) throws IndexException {
+    //Node<T> foundNode = find(index);
+    Node<T> prevNode = searchPrev(index);
+    if (head == null) {
+      if (!(Objects.equals(value, defaultval))) {
+        System.out.println("Making new node since head is null");
+        head = makeNode(index, value, null);
+        return;
+      }
+    }
+    Node<T> currNode = find(index);
+    System.out.println("Found this index @ " + index);
+    if (currNode == null) {
+      if (!(Objects.equals(value,defaultval))) {
+        if (index > head.index) {
+          prevNode.next = makeNode(index, value, prevNode.next);
+        } else {
+          head = makeNode(index, value, prevNode);
+        }
+      }
+    } else {
+      if (!(Objects.equals(value, defaultval))) {
+        currNode.data = value;
+      } else {
+        remove(currNode.index);
+      }
+    }
+  }
+
+  @Override
+  public T get(int index) throws IndexException {
+    if (!(isValid(index))) {
+      throw new IndexException();
+    }
+    Node<T> currNode = find(index);
+    if (currNode != null && currNode.index == index) {
+      return currNode.data;
+    } else {
+      return defaultval;
+    }
+  }
+
